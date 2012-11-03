@@ -10,6 +10,7 @@ import oauth2 as oauth
 
 class Yammer(object):
     base_url = 'https://www.yammer.com/api/v1/'
+    staging_base_url = 'https://www.staging.yammer.com/api/v1/'
 
     def __init__(self, *args, **kwargs):
         use_oauth2 = False
@@ -20,6 +21,10 @@ class Yammer(object):
             self.client = _YammerOAuth2Client(*args, **kwargs)
         else:
             self.client = _YammerOAuthClient(*args, **kwargs)
+
+        if 'staging' in kwargs:
+            self.base_url = self.staging_base_url
+
         self.messages = _MessageEndpoint(self)
         self.groups = _GroupEndpoint(self)
         self.users = _UserEndpoint(self)
@@ -64,12 +69,18 @@ class _YammerOAuthClient(object):
     def __init__(self, consumer_key, consumer_secret,
                  oauth_token=None, oauth_token_secret=None,
                  request_token_url=None, access_token_url=None,
-                 authorize_url=None):
-        self.request_token_url = 'https://www.yammer.com/oauth/request_token' \
+                 authorize_url=None, staging=False):
+
+        if staging:
+            base_url = "https://www.staging.yammer.com"
+        else:
+            base_url = "https://www.yammer.com"
+
+        self.request_token_url = '%s/oauth/request_token' % base_url \
             if request_token_url is None else request_token_url
-        self.access_token_url = 'https://www.yammer.com/oauth/access_token' \
+        self.access_token_url = '%s/oauth/access_token' % base_url \
             if access_token_url is None else access_token_url
-        self.authorize_url = 'https://www.yammer.com/oauth/authorize' \
+        self.authorize_url = '%s/oauth/authorize' % base_url \
             if authorize_url is None else authorize_url
 
         self.consumer = oauth.Consumer(consumer_key, consumer_secret)
@@ -118,15 +129,20 @@ class _YammerOAuthClient(object):
 class _YammerOAuth2Client(object):
     def __init__(self, consumer_key, consumer_secret,
                  access_token=None, redirect_url=None,
-                 access_token_url=None, authorize_url=None):
+                 access_token_url=None, authorize_url=None, staging=False):
+        if staging:
+            base_url = "https://www.staging.yammer.com"
+        else:
+            base_url = "https://www.yammer.com"
+
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
         self.access_token = access_token
         self.redirect_url = redirect_url
-        self.authorize_url = 'https://www.yammer.com/dialog/oauth' \
+        self.authorize_url = '%s/dialog/oauth' % base_url \
             if authorize_url is None else authorize_url
         self.access_token_url = \
-            'https://www.yammer.com/oauth2/access_token.json' \
+            '%s/oauth2/access_token.json' % base_url \
             if access_token_url is None else access_token_url
         self.client = httplib2.Http()
 
