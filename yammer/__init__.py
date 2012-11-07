@@ -23,7 +23,8 @@ class Yammer(object):
             self.client = _YammerOAuthClient(*args, **kwargs)
 
         if 'staging' in kwargs:
-            self.base_url = self.staging_base_url
+            if kwargs['staging']:
+                self.base_url = self.staging_base_url
 
         self.messages = _MessageEndpoint(self)
         self.groups = _GroupEndpoint(self)
